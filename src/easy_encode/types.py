@@ -1,13 +1,11 @@
 from typing import NewType, TypedDict, Any, Callable
 
 ObjectAttribute = NewType('ObjectAttribute', str)
-type AttributesAndTypes = dict[ObjectAttribute, list[type]]
-type EncodingFunction = Callable
+ObjectAttributeValue = NewType('ObjectAttributeValue', Any)
+ObjectAttributeType = NewType('ObjectAttributeType', Any)
+EncodingFunction = NewType('EncodingFunction', Callable)
+DecodingFunction = NewType('DecodingFunction', Callable)
 
-
-class TypeConversion(TypedDict):
-    encode: dict[type, Callable]
-    decode: dict[type, Callable]
-
-
-type TypeConversions = dict[type, TypeConversion]
+AttributeTypes = dict[ObjectAttribute, ObjectAttributeType]
+AttributeEncodingFunctions = dict[ObjectAttribute, EncodingFunction]
+AttributeDecodingFunctions = dict[ObjectAttribute, DecodingFunction]
