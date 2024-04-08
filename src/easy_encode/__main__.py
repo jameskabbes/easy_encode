@@ -12,9 +12,11 @@ DivisionID = IDType
 class Division:
     id: DivisionID
     datetime: datetime.datetime
-    numbers: set[set[dict[str, int]]]
+    numbers: set[int]
+    numbers2: set[float]
     name: Union[str, None] = field(default=None)
 
 
-division = Division(1, datetime.datetime.now(), set([1, 2, 3, 4]), 'east')
+division = Division(1, datetime.datetime.now(), set(
+    [1, 2, 3, 4]), set([1.0, 2.0]), 'east')
 print(encode_dataclass_object(division, 'json'))

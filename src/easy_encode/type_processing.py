@@ -40,3 +40,7 @@ def find_root_type(given_type):
     given_type = find_origin_type(given_type)
 
     return given_type
+
+
+def inspect_nested_type(given_type, given_value):
+    pass

@@ -1,8 +1,8 @@
 import datetime
-
 from easy_encode.data_conversions import datetime as datetime_conversions
+from easy_encode import types
 
-TYPE_CONVERSIONS = {
+TYPE_CONVERSIONS: types.AttributeValueTypeConversions = {
 
     datetime.datetime: {
         'encode': {
