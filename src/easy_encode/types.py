@@ -1,10 +1,15 @@
+from collections.abc import Mapping
 from typing import NewType, TypedDict, Any, Callable
+
+a: Mapping
 
 ObjectAttribute = NewType('ObjectAttribute', str)
 ObjectAttributeValue = NewType('ObjectAttributeValue', Any)
 ObjectAttributeType = NewType('ObjectAttributeType', Any)
-EncodingFunction = NewType('EncodingFunction', Callable)
-DecodingFunction = NewType('DecodingFunction', Callable)
+EncodingFunction = NewType(
+    'EncodingFunction', Callable[[ObjectAttributeValue], Any])
+DecodingFunction = NewType(
+    'DecodingFunction', Callable[[ObjectAttributeValue], Any])
 
 AttributeTypes = dict[ObjectAttribute, ObjectAttributeType]
 AttributeEncodingFunctions = dict[ObjectAttribute, EncodingFunction]

@@ -1,4 +1,6 @@
+from easy_encode import types
 import typing
+import collections.abc
 
 
 def find_supertype(given_type):
@@ -9,70 +11,90 @@ def find_supertype(given_type):
     return given_type
 
 
-def is_value_of_type_dict(value: dict, given_type) -> bool:
+def is_value_of_type_mapping(value: collections.abc.Mapping, given_type: types.ObjectAttributeType) -> bool:
+    """recursively check if the first key-value pair of Mapping object is of given_type"""
+
     nested_types = typing.get_args(given_type)
-
-    # empty dict passes
-    if len(value) == 0:
-        return True
-
-    for i in range(max(len(nested_types), 2)):
-        nested_type = nested_types[i]
+    for key in value.keys():
 
         # check key
-        first_key = list(value.keys())[0]
-        if i == 0:
-            if not is_value_of_type(first_key, nested_type):
-                return False
+        if len(nested_types) < 1:
+            break
+        if not is_value_of_type(key, nested_types[0]):
+            return False
 
         # check value
-        if i == 1:
-            if not is_value_of_type(value[first_key], nested_type):
-                return False
-
-    return True
-
-
-def is_value_of_type_iterable(value: typing.Iterable, given_type) -> bool:
-    nested_types = typing.get_args(given_type)
-
-    for i in range(min(len(nested_types), len(value))):
-        nested_type = nested_types[i]
-        if not is_value_of_type(value[i], nested_type):
+        if len(nested_types) < 2:
+            break
+        if not is_value_of_type(value[key], nested_types[1]):
             return False
 
     return True
 
 
-NESTED_TYPE_CHECKING: dict[type, typing.Callable] = {
-    list: is_value_of_type_dict,
-    tuple: is_value_of_type_iterable,
-    list: is_value_of_type_iterable,
+def is_value_of_type_iterable(value: typing.Iterable, given_type: types.ObjectAttributeType) -> bool:
+    nested_types = typing.get_args(given_type)
+
+    counter = 0
+    for item in iter(value):
+        if counter >= len(nested_types):
+            break
+        if not is_value_of_type(item, nested_types[counter]):
+            return False
+
+        counter += 1
+
+    return True
+
+
+NESTED_TYPE_CHECKING: dict[type, typing.Callable[[typing.Any, typing.Any], bool]] = {
+    collections.abc.Mapping: is_value_of_type_mapping,
+    collections.abc.Iterable: is_value_of_type_iterable,
 }
 
 
-def is_value_of_type(value, given_type) -> bool:
+def which_type_is_value(value: types.ObjectAttributeValue, given_type: types.ObjectAttributeType) -> types.ObjectAttributeType:
+
+    given_type_args = typing.get_args(given_type)
+    given_type_origin = typing.get_origin(given_type)
+
+    pass
+
+
+def is_value_of_type(value: types.ObjectAttributeValue, given_type: types.ObjectAttributeType) -> bool:
     """recursively check if value is of type: given_type"""
 
+    print(value, given_type)
     value_type = type(value)
+    print(value_type)
 
     # strip down the user defined NewTypes
     given_supertype = find_supertype(given_type)
+    print('supertype')
+    print(given_supertype)
 
-    # see if this is a nested dict, list, or tuple
+    # see if this is a Mapping (dict) or Iterable (dict,list,set,tuple)
     given_supertype_origin = typing.get_origin(given_supertype)
-    if given_supertype_origin in NESTED_TYPE_CHECKING:
-        return NESTED_TYPE_CHECKING[given_supertype_origin](value, given_type)
+    print('origin')
+    print(given_supertype_origin)
+    if given_supertype_origin != None:
+        for nested_type in (collections.abc.Mapping, collections.abc.Iterable):
+            if issubclass(given_supertype_origin, nested_type):
+                return NESTED_TYPE_CHECKING[nested_type](value, given_type)
 
     # not a nested type
-    else:
-        given_supertype_args = typing.get_args(given_supertype)
+    given_supertype_args = typing.get_args(given_supertype)
+    print('args')
+    print(given_supertype_args)
 
-        # union type
-        if len(given_supertype_args) > 1:
-            return value_type in (find_supertype(arg) for arg in given_supertype_args)
-        else:
-            return value_type == given_supertype
+    # union type
+    if len(given_supertype_args) > 1:
+        for given_supertype_arg in given_supertype_args:
+            if is_value_of_type(value, given_supertype_arg):
+                return True
+        return False
+    else:
+        return value_type == given_supertype or given_type == ...
 
 
 def find_priority_type(given_type):
@@ -108,13 +130,17 @@ def find_root_type(given_type):
 
 
 def test():
-
+    """
     print(is_value_of_type(True, bool))
     print(is_value_of_type(1, int))
     print(is_value_of_type(1, float))
     print(is_value_of_type([], list))
     print(is_value_of_type((), tuple))
     print(is_value_of_type({}, typing.NewType('Dict', dict)))
+    print(is_value_of_type({}, dict[str, int, bool]))
     print(is_value_of_type([1, 2, 3], list[int, int, float]))
     print(is_value_of_type([1, 2, 3], list))
     print(is_value_of_type([1, 2, 3], list))
+    print(is_value_of_type((1, 2, 3), tuple[int, ...]))
+    """
+    print(is_value_of_type({}, dict[str, list[set[int]]] | None))

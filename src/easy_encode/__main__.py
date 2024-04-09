@@ -1,26 +1,24 @@
 from easy_encode import encode_dataclass_object, type_processing
 from dataclasses import dataclass, field
-from typing import Set, NewType, TypedDict, Callable, Any, Union, Literal
-import datetime
+import typing
+import datetime as datetime_module
 
-IDTyp = NewType('IDTyp', Union[Union[int, None], str])
-IDType = NewType('IDType', IDTyp)
+IDTyp = typing.NewType('IDTyp', typing.Union[typing.Union[int, None], str])
+IDType = typing.NewType('IDType', IDTyp)
 DivisionID = IDType
 
 
 @dataclass
 class Division:
     id: DivisionID
-    datetime: datetime.datetime
-    numbers: set[int]
-    numbers2: set[float]
-    name: Union[str, None] = field(default=None)
+    datetime: typing.Optional[datetime_module.datetime]
+    datetimes: set[datetime_module.datetime]
 
 
-"""
-division = Division(1, datetime.datetime.now(), set(
-    [1, 2, 3, 4]), set([1.0, 2.0]), 'east')
-print(encode_dataclass_object(division, 'json'))
-"""
+division = Division(1, datetime_module.datetime.now(), set(
+    [datetime_module.datetime.now(), datetime_module.datetime.now()]))
+# print(division)
+
+# print(encode_dataclass_object(division, 'json'))
 
 type_processing.test()

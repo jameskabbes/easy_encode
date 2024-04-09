@@ -15,5 +15,5 @@ TYPE_CONVERSIONS: types.AttributeValueTypeConversions = {
             float: lambda x: datetime_conversions.datetime_from_number(x),
             str: lambda x: datetime_conversions.datetime_from_str(x)
         }
-    }
+    },
 }
