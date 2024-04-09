@@ -33,7 +33,7 @@ def is_value_of_type_dict(value: dict, given_type) -> bool:
     return True
 
 
-def is_value_of_type_list(value: list | tuple, given_type) -> bool:
+def is_value_of_type_iterable(value: typing.Iterable, given_type) -> bool:
     nested_types = typing.get_args(given_type)
 
     for i in range(min(len(nested_types), len(value))):
@@ -46,8 +46,8 @@ def is_value_of_type_list(value: list | tuple, given_type) -> bool:
 
 NESTED_TYPE_CHECKING: dict[type, typing.Callable] = {
     list: is_value_of_type_dict,
-    tuple: is_value_of_type_list,
-    list: is_value_of_type_list
+    tuple: is_value_of_type_iterable,
+    list: is_value_of_type_iterable,
 }
 
 
