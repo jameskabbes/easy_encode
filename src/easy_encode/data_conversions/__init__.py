@@ -1,6 +1,10 @@
 import datetime
-from easy_encode.data_conversions import datetime as datetime_conversions
+from easy_encode.data_conversions import datetime_conversions as datetime_conversions
 from easy_encode import types
+
+TYPE_CASTING = {
+    type(None): lambda x: None
+}
 
 TYPE_CONVERSIONS: types.AttributeValueTypeConversions = {
 

@@ -1,7 +1,4 @@
-from collections.abc import Mapping
 from typing import NewType, TypedDict, Any, Callable
-
-a: Mapping
 
 ObjectAttribute = NewType('ObjectAttribute', str)
 ObjectAttributeValue = NewType('ObjectAttributeValue', Any)
@@ -17,9 +14,28 @@ AttributeDecodingFunctions = dict[ObjectAttribute, DecodingFunction]
 
 
 class AttributeValueTypeConversion(TypedDict):
-    encode: dict[Any, Callable]
-    decode: dict[Any, Callable]
+    encode: dict[ObjectAttributeType, AttributeEncodingFunctions]
+    decode: dict[ObjectAttributeType, AttributeDecodingFunctions]
 
 
 AttributeValueTypeConversions = dict[ObjectAttributeType,
                                      AttributeValueTypeConversion]
+
+IsValueOfTypeFunction = Callable[[
+    ObjectAttributeValue, ObjectAttributeType], bool]
+
+IsValueOfTypeCollection = Callable[[
+    Any, ObjectAttributeType, IsValueOfTypeFunction], bool]
+
+
+class TypeCache(TypedDict):
+    a: str
+
+
+TypeCaches = dict[ObjectAttributeType, TypeCache]
+
+
+class ClientConfig(TypedDict):
+    cache_types: bool
+    type_conversions_overwrite: AttributeValueTypeConversions
+    type_conversions_additional: AttributeValueTypeConversions
