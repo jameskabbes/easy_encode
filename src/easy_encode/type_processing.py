@@ -139,11 +139,19 @@ def find_first_match(value: ee_types.ObjectAttributeValue, given_type: ee_types.
             return (False, None)
 
 
-def is_type_of_type_exclude_union(primary_type) -> bool:
-    pass
+def is_type_of_type_exclude_union(primary_type: ee_types.ObjectAttributeType, secondary_type: ee_types.ObjectAttributeType) -> bool:
+
+    primary_type = find_supertype(primary_type)
+    secondary_type = find_supertype(secondary_type)
+
+    if secondary_type == typing.Union or secondary_type == types.UnionType:
+        return False
+
+    return is_type_of_type_include_union(primary_type, secondary_type)
 
 
-def is_type_of_type_include_union(primary_type) -> bool:
+def is_type_of_type_include_union(primary_type: ee_types.ObjectAttributeType, secondary_type: ee_types.ObjectAttributeType) -> bool:
+
     pass
 
 
