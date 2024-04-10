@@ -1,4 +1,4 @@
-from easy_encode import encode_dataclass_object, type_processing
+from easy_encode import client, type_processing
 from dataclasses import dataclass, field
 import typing
 import datetime as datetime_module
@@ -16,9 +16,9 @@ class Division:
 
 
 division = Division(1, datetime_module.datetime.now(), set(
-    [datetime_module.datetime.now(), datetime_module.datetime.now()]))
-# print(division)
+    [datetime_module.datetime.now()]))
 
-# print(encode_dataclass_object(division, 'json'))
+easy_encode_client = client.Client()
+result = easy_encode_client.encode_dataclass_object(division, 'json')
 
-type_processing.test()
+print(result)
