@@ -12,6 +12,12 @@ def find_supertype(given_type):
     return given_type
 
 
+def is_type_of_type(primary_type, secondary_type) -> bool:
+    """list[int] is of type list"""
+
+    return True
+
+
 def is_value_of_type(value, given_type, top_level_union: bool = False, allow_any: bool = True, allow_subclass: bool = True) -> tuple[bool, typing.Any]:
     """recursively check if the type of value is of 'given_type', option to count all union types as False, and not count typing.Any
     ([1,2,3], list[int]) = True
