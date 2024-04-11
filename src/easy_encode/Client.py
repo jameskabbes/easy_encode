@@ -1,4 +1,5 @@
 from easy_encode import types as ee_types, data_stores, types as ee_types
+import typing
 
 
 class Client:
@@ -9,16 +10,15 @@ class Client:
         pass
 
     def encode_dataclass_object(self,
-                                obj,  # is a dataclass
                                 data_store: data_stores.DATA_STORES,
-                                attribute_types: ee_types.AttributeTypes | None = None,
-                                attribute_encoding_functions: ee_types.AttributeEncodingFunctions | None = None
+                                obj,
+                                encoding_functions: ee_types.AttributeEncodingFunctions = {}
                                 ):
 
-        data_store_class = data_stores.get_data_store(data_store)
-        if attribute_types == None:
-            attribute_types = obj.__annotations__
-        if attribute_encoding_functions == None:
-            attribute_encoding_functions = {}
+        attribute_types = obj.__annotations__
+        return self.encode_object(data_store, obj, attribute_types, encoding_functions)
 
-        return data_store_class._encode_object(obj, attribute_types, attribute_encoding_functions)
+    def encode_object(self, data_store: data_stores.DATA_STORES, obj, attribute_types: ee_types.AttributeTypes, encoding_functions: ee_types.AttributeEncodingFunctions = {}):
+
+        data_store_class = data_stores.get_data_store(data_store)
+        return data_store_class._encode_object(obj, attribute_types, encoding_functions)

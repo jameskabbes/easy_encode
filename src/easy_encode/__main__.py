@@ -11,14 +11,15 @@ DivisionID = IDType
 @dataclass
 class Division:
     id: DivisionID
-    datetime: typing.Optional[datetime_module.datetime]
     datetimes: set[datetime_module.datetime]
 
 
-division = Division(1, datetime_module.datetime.now(), set(
-    [datetime_module.datetime.now()]))
+division = Division(1, list(
+    [datetime_module.datetime.now(), datetime_module.datetime.now()]))
 
 easy_encode_client = client.Client()
-result = easy_encode_client.encode_dataclass_object(division, 'json')
-
+print(division)
+result = easy_encode_client.encode_dataclass_object('json', division)
 print(result)
+
+# type_processing.test()

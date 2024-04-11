@@ -11,8 +11,8 @@ class DataStoreNotSupported(Exception):
 
 class AttributeValueTypeNotAsTyped(Exception):
 
-    MESSAGE = 'Object {} given attribute "{}" value of {} is not of type {}'
+    MESSAGE = 'value of {} is not of type {}'
 
-    def __init__(self, obj, att, attribute_value: types.ObjectAttributeValue, attribute_type: types.ObjectAttributeType):
-        super().__init__(AttributeValueTypeNotAsTyped.MESSAGE.format(type(obj), att,
-                                                                     attribute_value, attribute_type))
+    def __init__(self, attribute_value: types.ObjectAttributeValue, attribute_type: types.ObjectAttributeType):
+        super().__init__(AttributeValueTypeNotAsTyped.MESSAGE.format(
+            attribute_value, attribute_type))

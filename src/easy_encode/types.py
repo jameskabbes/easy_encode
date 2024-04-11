@@ -1,12 +1,12 @@
-from typing import NewType, TypedDict, Any, Callable
+from typing import NewType, TypedDict, Any, Callable, Required
 
 ObjectAttribute = NewType('ObjectAttribute', str)
 ObjectAttributeValue = NewType('ObjectAttributeValue', Any)
 ObjectAttributeType = NewType('ObjectAttributeType', Any)
 EncodingFunction = NewType(
-    'EncodingFunction', Callable[[ObjectAttributeValue], Any])
+    'EncodingFunction', Callable[[ObjectAttributeValue], ObjectAttributeValue])
 DecodingFunction = NewType(
-    'DecodingFunction', Callable[[ObjectAttributeValue], Any])
+    'DecodingFunction', Callable[[ObjectAttributeValue], ObjectAttributeValue])
 
 AttributeTypes = dict[ObjectAttribute, ObjectAttributeType]
 AttributeEncodingFunctions = dict[ObjectAttribute, EncodingFunction]
@@ -21,12 +21,6 @@ class AttributeValueTypeConversion(TypedDict):
 AttributeValueTypeConversions = dict[ObjectAttributeType,
                                      AttributeValueTypeConversion]
 
-IsValueOfTypeFunction = Callable[[
-    ObjectAttributeValue, ObjectAttributeType], bool]
-
-IsValueOfTypeCollection = Callable[[
-    Any, ObjectAttributeType, IsValueOfTypeFunction], bool]
-
 
 class TypeCache(TypedDict):
     a: str
@@ -39,3 +33,9 @@ class ClientConfig(TypedDict):
     cache_types: bool
     type_conversions_overwrite: AttributeValueTypeConversions
     type_conversions_additional: AttributeValueTypeConversions
+
+
+class IsValueOfTypeFunctionKwargs(TypedDict):
+    allow_union: bool
+    allow_subclass: bool
+    allow_any: bool

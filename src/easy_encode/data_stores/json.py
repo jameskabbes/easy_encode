@@ -9,5 +9,5 @@ class DataStore(BaseDataStore):
 
     ENCODING_TYPE_MAPPING = {
         set: list,
-        datetime.datetime: str
+        datetime.datetime: str,
     }
