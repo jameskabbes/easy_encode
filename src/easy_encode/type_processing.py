@@ -12,106 +12,103 @@ def find_supertype(given_type):
     return given_type
 
 
-def is_value_of_type_mapping(value: collections.abc.Mapping, given_type: ee_types.ObjectAttributeType, is_value_of_type_func: ee_types.IsValueOfTypeFunction) -> bool:
-    """recursively check if the first key-value pair of Mapping object is of given_type"""
-
-    nested_types = typing.get_args(given_type)
-    for key in value.keys():
-
-        # check key
-        if len(nested_types) < 1:
-            break
-        if not is_value_of_type_func(key, nested_types[0]):
-            return False
-
-        # check value
-        if len(nested_types) < 2:
-            break
-        if not is_value_of_type_func(value[key], nested_types[1]):
-            return False
-
-    return True
-
-
-def is_value_of_type_iterable(value: collections.abc.Iterable, given_type: ee_types.ObjectAttributeType, is_value_of_type_func: ee_types.IsValueOfTypeFunction) -> bool:
-
-    nested_types = typing.get_args(given_type)
-    counter = 0
-    for item in iter(value):
-        if counter >= len(nested_types):
-            break
-        if not is_value_of_type_func(item, nested_types[counter]):
-            return False
-
-        counter += 1
-
-    return True
-
-
-NESTED_TYPE_CHECKING: dict[type, ee_types.IsValueOfTypeCollection] = {
-    collections.abc.Mapping: is_value_of_type_mapping,
-    collections.abc.Iterable: is_value_of_type_iterable,
+default_is_value_of_type_kwargs: ee_types.IsValueOfTypeKwargs = {
+    'allow_union': True,
+    'allow_subclass': True,
+    'allow_any': True
 }
 
 
-def is_value_of_type_include_union(value: ee_types.ObjectAttributeValue, given_type: ee_types.ObjectAttributeType) -> bool:
-    """recursively check if value is of type: given_type"""
+def is_value_of_type(value, given_type, **kwargs: ee_types.IsValueOfTypeKwargs) -> tuple[bool, typing.Any]:
+    """recursively check if the type of value is of 'given_type', option to count all union types as False, and not count typing.Any
+    ([1,2,3], list[int]) = True
+    ({1:2.0, 3:4.0}, dict[int, int] = False)
+    """
 
-    print(value, given_type)
-    value_type = type(value)
-    print(value_type)
+    allow_union = default_is_value_of_type_kwargs[
+        'allow_union'] if 'allow_union' not in kwargs else kwargs['allow_union']
+    allow_subclass = default_is_value_of_type_kwargs[
+        'allow_subclass'] if 'allow_subclass' not in kwargs else kwargs['allow_subclass']
+    allow_any = default_is_value_of_type_kwargs[
+        'allow_any'] if 'allow_any' not in kwargs else kwargs['allow_any']
 
-    # strip down the user defined NewTypes
-    given_supertype = find_supertype(given_type)
-    print('supertype')
-    print(given_supertype)
+    given_type_origin = typing.get_origin(given_type)
+    if given_type_origin != None:
 
-    # see if this is a Mapping (dict) or Iterable (dict,list,set,tuple)
-    given_supertype_origin = typing.get_origin(given_supertype)
-    print('origin')
-    print(given_supertype_origin)
-    if given_supertype_origin != None:
-        for nested_type in (collections.abc.Mapping, collections.abc.Iterable):
-            if issubclass(given_supertype_origin, nested_type):
-                return NESTED_TYPE_CHECKING[nested_type](value, given_supertype, is_value_of_type_include_union)
+        nested_types = typing.get_args(given_type)
+
+        # see if this is a Mapping (dict) or Iterable (dict,list,set,tuple)
+        if issubclass(given_type_origin, collections.abc.Mapping):
+            mapping: collections.abc.Mapping = value
+            for key in mapping.keys():
+
+                # check key
+                if len(nested_types) < 1:
+                    break
+                if not is_value_of_type(key, nested_types[0], **kwargs)[0]:
+                    return (False, None)
+
+                # check value
+                if len(nested_types) < 2:
+                    break
+                if not is_value_of_type(mapping[key], nested_types[1], **kwargs)[0]:
+                    return (False, None)
+
+            return (True, given_type)
+
+        elif issubclass(given_type_origin, collections.abc.Iterable):
+
+            counter = 0
+            for item in iter(value):
+                if counter >= len(nested_types):
+                    break
+                if not is_value_of_type(item, nested_types[counter], **kwargs)[0]:
+                    return (False, None)
+                counter += 1
+
+            return (True, given_type)
 
     # not a nested type
-    given_supertype_args = typing.get_args(given_supertype)
-    print('args')
-    print(given_supertype_args)
+    given_type_args = typing.get_args(given_type)
 
-    # union type
-    if len(given_supertype_args) > 1:
-        for given_supertype_arg in given_supertype_args:
-            if is_value_of_type_include_union(value, given_supertype_arg):
-                return True
-        return False
-    else:
-        return value_type == given_supertype or given_type == ...
+    # a Union type
+    if len(given_type_args) > 1:
+        if allow_union:
+            # if anything from the union matches, return True
+            for given_type_arg in given_type_args:
+                if is_value_of_type(value, given_type_arg, **kwargs):
+                    return (True, given_type)
+            return (False, None)
 
+        else:
+            return (False, None)
 
-def is_value_of_type_exclude_union(value: ee_types.ObjectAttributeValue, given_type: ee_types.ObjectAttributeType) -> bool:
-    """recursively check if value is of type: given_type"""
+    # some other wrapping type like typing.Required, typing.NotRequired, etc have
+    elif len(given_type_args) == 1:
 
-    # strip down the user defined NewTypes
-    given_supertype = find_supertype(given_type)
+        return is_value_of_type(value, given_type_args[0], **kwargs)
 
-    # see if this is a nested Mapping (dict) or Iterable (dict,list,set,tuple)
-    given_supertype_origin = typing.get_origin(given_supertype)
-    if given_supertype_origin != None:
-        for nested_type in (collections.abc.Mapping, collections.abc.Iterable):
-            if issubclass(given_supertype_origin, nested_type):
-                return NESTED_TYPE_CHECKING[nested_type](value, given_supertype, is_value_of_type_exclude_union)
+        # Maybe recursively return this function call's given_type instead? Something like
+        # if is_value_of_type(value, given_type_args[0], allow_unions=allow_unions)[0]:
+        #    return (True, given_type)
 
-    # not a nested type
-    given_supertype_args = typing.get_args(given_supertype)
+    # this is a regular ole type, with no args
+    elif len(given_type_args) == 0:
 
-    # not a union type
-    if len(given_supertype_args) == 0:
-        return type(value) == given_supertype or given_type == ...
+        raw_type = type(value)
+        if raw_type == given_type or given_type == ... or (given_type == typing.Any and allow_any):
+            return (True, given_type)
 
-    else:
-        return False
+        # try it all again with the given types __supertype__
+        if hasattr(given_type, '__supertype__') and type(given_type) == typing.NewType:
+            if is_value_of_type(value, given_type.__supertype__, **kwargs)[0]:
+                return (True, given_type)
+            return (False, None)
+
+        if (issubclass(raw_type, given_type) and allow_subclass):
+            return (True, given_type)
+
+        return (False, None)
 
 
 def find_first_match(value: ee_types.ObjectAttributeValue, given_type: ee_types.ObjectAttributeType) -> tuple[bool, ee_types.ObjectAttributeType | None]:
@@ -132,27 +129,11 @@ def find_first_match(value: ee_types.ObjectAttributeValue, given_type: ee_types.
 
     # not a union type
     else:
-        if is_value_of_type_exclude_union(value, given_type):
+        if is_value_of_type(value, given_type, allow_unions=False):
             return (True, given_type)
 
         else:
             return (False, None)
-
-
-def is_type_of_type_exclude_union(primary_type: ee_types.ObjectAttributeType, secondary_type: ee_types.ObjectAttributeType) -> bool:
-
-    primary_type = find_supertype(primary_type)
-    secondary_type = find_supertype(secondary_type)
-
-    if secondary_type == typing.Union or secondary_type == types.UnionType:
-        return False
-
-    return is_type_of_type_include_union(primary_type, secondary_type)
-
-
-def is_type_of_type_include_union(primary_type: ee_types.ObjectAttributeType, secondary_type: ee_types.ObjectAttributeType) -> bool:
-
-    pass
 
 
 def find_priority_type(given_type):
@@ -188,26 +169,43 @@ def find_root_type(given_type):
 
 
 def test():
-    """
-    print(is_value_of_type(True, bool))
-    print(is_value_of_type(1, int))
-    print(is_value_of_type(1, float))
-    print(is_value_of_type([], list))
-    print(is_value_of_type((), tuple))
-    print(is_value_of_type({}, typing.NewType('Dict', dict)))
-    print(is_value_of_type({}, dict[str, int, bool]))
-    print(is_value_of_type([1, 2, 3], list[int, int, float]))
-    print(is_value_of_type([1, 2, 3], list))
-    print(is_value_of_type([1, 2, 3], list))
-    print(is_value_of_type((1, 2, 3), tuple[int, ...]))
-    print(is_value_of_type({}, dict[str, list[set[int]]] | None))
-    """
 
-    b = typing.NewType('b', list[int])
+    def perform_test(expected_validity, value, type, **kwargs: ee_types.IsValueOfTypeKwargs):
+        respone = is_value_of_type(value, type, **kwargs)
+        print('value: {} type: {} valid: {} valid_type: {}'.format(
+            value, type, respone[0], respone[1]))
+        if expected_validity != respone[0]:
+            print('====================')
+            print('WARNING')
+            print('====================')
 
-    a = typing.NewType('a', str | b)
-    # print(is_value_of_type_include_union([True, True, True], a))
+    perform_test(True, True, bool)
 
-    print()
-    a = find_first_match([1, 2, 3], int | a | type(None) | list[int])
-    print('Match is: ', a)
+    perform_test(True, True, bool)
+    perform_test(True, 1, int)
+    perform_test(True, 1.0, float)
+    perform_test(False, None, bool)
+    perform_test(False, None, int)
+    perform_test(False, 1, float)
+    perform_test(True, True, ...)
+    perform_test(True, None, typing.Any, allow_any=True)
+    perform_test(False, None, typing.Any, allow_any=False)
+    perform_test(True, 1, float | int, allow_union=True)
+    perform_test(False, 1, float | int, allow_union=False)
+    perform_test(True, 1, float | int, allow_union=True)
+    perform_test(True, 1, typing.NewType('A', typing.NewType('B', int)))
+    perform_test(False, 1.0, typing.NewType('A', typing.NewType('B', int)))
+    perform_test(True, [1, 2, 3], list[int])
+    perform_test(False, [1.0, 2, 3], list[int])
+    perform_test(True, [1, 2.0, 3], list[int])
+    perform_test(False, [1, 2.0, 3], list[int, int])
+    perform_test(True, [1, 2, 3], collections.abc.Iterable[int])
+    perform_test(True, [1, 2, 3], collections.abc.Iterable)
+    perform_test(False, [1, 2, 3], collections.abc.Iterable[bool])
+    perform_test(True, (1, 2, 3), tuple[int, ...])
+    perform_test(True, (1, 2.0, 3), tuple[int, float])
+
+    # not sure type safety should work this way
+    perform_test(True, (1,), tuple[int, float])
+
+    perform_test(True, {}, dict[str, list[set[int]]] | None)
