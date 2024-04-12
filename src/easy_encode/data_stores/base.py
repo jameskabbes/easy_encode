@@ -48,13 +48,12 @@ class DataStore:
         print('encoding value')
 
         # 1. find the actual type of value from nested type
-        found_match, actual_type = type_processing.is_value_of_type(
+        found_matches = type_processing.find_value_type_matches(
             attribute_value, attribute_type)
 
-        print('got it')
-        print(attribute_value, attribute_type, actual_type)
+        print(attribute_value, attribute_type, found_matches)
 
-        if not found_match:
+        if len(found_matches) == 0:
             raise exceptions.AttributeValueTypeNotAsTyped(
                 attribute_value, attribute_type)
 

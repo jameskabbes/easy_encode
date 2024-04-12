@@ -18,13 +18,15 @@ def is_type_of_type(primary_type, secondary_type) -> bool:
     return True
 
 
-def is_value_of_type(value, given_type, top_level_union: bool = False, allow_any: bool = True, allow_subclass: bool = True) -> tuple[bool, typing.Any]:
-    """recursively check if the type of value is of 'given_type', option to count all union types as False, and not count typing.Any
-    ([1,2,3], list[int]) = True
-    ({1:2.0, 3:4.0}, dict[int, int] = False)
+def find_value_type_matches(value, given_type, allow_any: bool = True, allow_subclass: bool = True) -> list[typing.Any]:
+    """recursively check if the type of value is of 'given_type'
+    ([1,2,3], list[int]) = [ list[int] ]
+    ({1:2.0, 3:4.0}, dict[int, int] = []
+
+    returns (bool, list[typing.Any])
+    1. bool: whether the value is of the given type
+    2. list of all types that the value if of, starting with the most specific, ending with the most generic
     """
-    print('--------------')
-    print(value, given_type)
 
     given_type_origin = typing.get_origin(given_type)
     if given_type_origin != None and type(value) == given_type_origin:
@@ -46,16 +48,24 @@ def is_value_of_type(value, given_type, top_level_union: bool = False, allow_any
                 # check key
                 if len(nested_types) < 1:
                     break
-                if not is_value_of_type(key, nested_types[0], top_level_union=top_level_union, allow_any=allow_any, allow_subclass=allow_subclass)[0]:
-                    return (False, None)
+                response = find_value_type_matches(
+                    key, nested_types[0], allow_any=allow_any, allow_subclass=allow_subclass)
+                if len(response) == 0:
+                    return []
 
                 # check value
                 if len(nested_types) < 2:
                     break
-                if not is_value_of_type(mapping[key], nested_types[1], top_level_union=top_level_union, allow_any=allow_any, allow_subclass=allow_subclass)[0]:
-                    return (False, None)
+                reponse = find_value_type_matches(
+                    mapping[key], nested_types[1], allow_any=allow_any, allow_subclass=allow_subclass)
+                if len(response) == 0:
+                    return []
 
-            return (True, given_type)
+                # don't check all the keys
+                return [given_type]
+
+            # if the mapping is empty, return successful
+            return [given_type]
 
         is_iterable = False
         try:
@@ -69,11 +79,14 @@ def is_value_of_type(value, given_type, top_level_union: bool = False, allow_any
             for item in iter(value):
                 if counter >= len(nested_types):
                     break
-                if not is_value_of_type(item, nested_types[counter], top_level_union=top_level_union, allow_any=allow_any, allow_subclass=allow_subclass)[0]:
-                    return (False, None)
+                response = find_value_type_matches(
+                    item, nested_types[counter], allow_any=allow_any, allow_subclass=allow_subclass)
+                if len(response) == 0:
+                    return []
                 counter += 1
 
-            return (True, given_type)
+            # return once we have checked all items or type hints
+            return [given_type]
 
     # not a nested type
     given_type_args = typing.get_args(given_type)
@@ -81,43 +94,44 @@ def is_value_of_type(value, given_type, top_level_union: bool = False, allow_any
     # a Union type
     if len(given_type_args) > 1:
         for given_type_arg in given_type_args:
-            response = is_value_of_type(
-                value, given_type_arg, top_level_union=top_level_union, allow_any=allow_any, allow_subclass=allow_subclass)
+            response = find_value_type_matches(
+                value, given_type_arg, allow_any=allow_any, allow_subclass=allow_subclass)
 
-            # if anything from the union matches, return True
-            if response[0]:
-                if top_level_union:
-                    return (True, given_type)
-                else:
-                    return response
-        return (False, None)
+            # if anything from the union matches (checking first type primarily) return successful
+            if len(response) > 0:
+                return response + [given_type]
+        return []
 
     # some other wrapping type like typing.Required, typing.NotRequired, etc have get_args() of length 1
     elif len(given_type_args) == 1:
 
-        return is_value_of_type(value, given_type_args[0], top_level_union=top_level_union, allow_any=allow_any, allow_subclass=allow_subclass)
+        response = find_value_type_matches(
+            value, given_type_args[0], allow_any=allow_any, allow_subclass=allow_subclass)
 
-        # Maybe recursively return this function call's given_type instead? Something like
-        # if is_value_of_type(value, given_type_args[0], top_level_unions=top_level_unions)[0]:
-        #    return (True, given_type)
+        if len(response) == 0:
+            return response + [given_type]
 
     # this is a regular ole type, with no args
     elif len(given_type_args) == 0:
 
         raw_type = type(value)
         if raw_type == given_type or given_type == ... or (given_type == typing.Any and allow_any):
-            return (True, given_type)
+            return [given_type]
 
         # try it all again with the given types __supertype__
         if type(given_type) == typing.NewType:
-            if is_value_of_type(value, given_type.__supertype__, top_level_union=top_level_union, allow_any=allow_any, allow_subclass=allow_subclass)[0]:
-                return (True, given_type)
-            return (False, None)
+            response = find_value_type_matches(
+                value, given_type.__supertype__, allow_any=allow_any, allow_subclass=allow_subclass)
+
+            if len(response) > 0:
+                return response + [given_type]
+            else:
+                return []
 
         if (issubclass(raw_type, given_type) and allow_subclass):
-            return (True, given_type)
+            return [given_type]
 
-        return (False, None)
+        return []
 
 
 def find_priority_type(given_type):
