@@ -14,7 +14,7 @@ a = typing.NewType('a', set[datetime_module.datetime])
 class Division:
     id: DivisionID
     datetimes: a
-    test: list[dict[str, int]]
+    test: list[dict[int, int]]
 
 
 division = Division(1, set(
