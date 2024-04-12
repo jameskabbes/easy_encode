@@ -23,9 +23,11 @@ def is_value_of_type(value, given_type, top_level_union: bool = False, allow_any
     ([1,2,3], list[int]) = True
     ({1:2.0, 3:4.0}, dict[int, int] = False)
     """
+    print('--------------')
+    print(value, given_type)
 
     given_type_origin = typing.get_origin(given_type)
-    if given_type_origin != None:
+    if given_type_origin != None and type(value) == given_type_origin:
 
         nested_types = typing.get_args(given_type)
 

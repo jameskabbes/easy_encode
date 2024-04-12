@@ -7,14 +7,16 @@ IDTyp = typing.NewType('IDTyp', typing.Union[typing.Union[int, None], str])
 IDType = typing.NewType('IDType', IDTyp)
 DivisionID = IDType
 
+a = typing.NewType('a', set[datetime_module.datetime])
+
 
 @dataclass
 class Division:
     id: DivisionID
-    datetimes: set[datetime_module.datetime]
+    datetimes: a
 
 
-division = Division(1, list(
+division = Division(1, set(
     [datetime_module.datetime.now(), datetime_module.datetime.now()]))
 
 easy_encode_client = client.Client()

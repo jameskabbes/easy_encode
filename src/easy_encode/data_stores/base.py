@@ -45,10 +45,13 @@ class DataStore:
     @classmethod
     def _encode_value(cls, attribute_value: ee_types.ObjectAttributeValue, attribute_type: ee_types.ObjectAttributeType, encoded_type: ee_types.ObjectAttributeType | None = None) -> ee_types.ObjectAttributeValue:
 
+        print('encoding value')
+
         # 1. find the actual type of value from nested type
         found_match, actual_type = type_processing.is_value_of_type(
             attribute_value, attribute_type)
 
+        print('got it')
         print(attribute_value, attribute_type, actual_type)
 
         if not found_match:
