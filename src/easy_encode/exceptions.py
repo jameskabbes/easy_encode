@@ -1,4 +1,4 @@
-from easy_encode import types
+from easy_encode import types as ee_types
 
 
 class DataStoreNotSupported(Exception):
@@ -11,8 +11,8 @@ class DataStoreNotSupported(Exception):
 
 class AttributeValueTypeNotAsTyped(Exception):
 
-    MESSAGE = 'value of {} is not of type {}'
+    MESSAGE = 'Object {} attribute "{}" value of {} is not as typed {}'
 
-    def __init__(self, attribute_value: types.ObjectAttributeValue, attribute_type: types.ObjectAttributeType):
-        super().__init__(AttributeValueTypeNotAsTyped.MESSAGE.format(
-            attribute_value, attribute_type))
+    def __init__(self, obj, attribute: ee_types.ObjectAttribute, attribute_value: ee_types.ObjectAttributeValue, attribute_type: ee_types.ObjectAttributeType):
+        super().__init__(AttributeValueTypeNotAsTyped.MESSAGE.format(obj, attribute,
+                                                                     attribute_value, attribute_type))

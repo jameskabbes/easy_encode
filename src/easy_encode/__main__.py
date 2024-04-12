@@ -14,10 +14,11 @@ a = typing.NewType('a', set[datetime_module.datetime])
 class Division:
     id: DivisionID
     datetimes: a
+    test: list[list[dict[int, str]]]
 
 
 division = Division(1, set(
-    [datetime_module.datetime.now(), datetime_module.datetime.now()]))
+    [datetime_module.datetime.now(), datetime_module.datetime.now()]), [[{1: True}]])
 
 easy_encode_client = client.Client()
 print(division)

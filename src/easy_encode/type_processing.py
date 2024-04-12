@@ -28,12 +28,19 @@ def find_value_type_matches(value, given_type, allow_any: bool = True, allow_sub
     2. list of all types that the value if of, starting with the most specific, ending with the most generic
     """
 
+    print('------Find value type matches-----')
+    print(value, given_type)
+
     given_type_origin = typing.get_origin(given_type)
-    if given_type_origin != None and type(value) == given_type_origin:
+    if given_type_origin != None:
 
         nested_types = typing.get_args(given_type)
 
-        # see if this is a Mapping (dict) or Iterable (dict,list,set,tuple)
+        print('asdf')
+        print(given_type_origin)
+        print(type(value))
+
+        # see if this is a Mapping (dict)
         is_mapping = False
         try:
             is_mapping = issubclass(
@@ -42,6 +49,12 @@ def find_value_type_matches(value, given_type, allow_any: bool = True, allow_sub
             pass
 
         if is_mapping:
+            try:
+                if not issubclass(type(value), collections.abc.MutableMapping):
+                    return []
+            except:
+                return []
+
             mapping: collections.abc.MutableMapping = value
             for key in mapping.keys():
 
@@ -67,6 +80,7 @@ def find_value_type_matches(value, given_type, allow_any: bool = True, allow_sub
             # if the mapping is empty, return successful
             return [given_type]
 
+        # see if this is an Iterable (dict,list,set,tuple)
         is_iterable = False
         try:
             is_iterable = issubclass(
@@ -75,6 +89,12 @@ def find_value_type_matches(value, given_type, allow_any: bool = True, allow_sub
             pass
 
         if is_iterable:
+            try:
+                if not issubclass(type(value), collections.abc.Iterable):
+                    return []
+            except:
+                return []
+
             counter = 0
             for item in iter(value):
                 if counter >= len(nested_types):
@@ -108,8 +128,10 @@ def find_value_type_matches(value, given_type, allow_any: bool = True, allow_sub
         response = find_value_type_matches(
             value, given_type_args[0], allow_any=allow_any, allow_subclass=allow_subclass)
 
-        if len(response) == 0:
+        if len(response) != 0:
             return response + [given_type]
+        else:
+            return []
 
     # this is a regular ole type, with no args
     elif len(given_type_args) == 0:
