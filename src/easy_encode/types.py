@@ -1,41 +1,24 @@
-from typing import NewType, TypedDict, Any, Callable, Required
+from typing import NewType, TypedDict, Any, Callable, Required, Literal
 
 ObjectAttribute = NewType('ObjectAttribute', str)
 ObjectAttributeValue = NewType('ObjectAttributeValue', Any)
 ObjectAttributeType = NewType('ObjectAttributeType', Any)
-EncodingFunction = NewType(
-    'EncodingFunction', Callable[[ObjectAttributeValue], ObjectAttributeValue])
-DecodingFunction = NewType(
-    'DecodingFunction', Callable[[ObjectAttributeValue], ObjectAttributeValue])
+type AttributeTypes = dict[ObjectAttribute, ObjectAttributeType]
 
-AttributeTypes = dict[ObjectAttribute, ObjectAttributeType]
-AttributeEncodingFunctions = dict[ObjectAttribute, EncodingFunction]
-AttributeDecodingFunctions = dict[ObjectAttribute, DecodingFunction]
+type ConversionFunctionBase = Callable[[
+    ObjectAttributeValue], ObjectAttributeValue]
+type ConversionFunctionType = Literal['encode', 'decode']
 
+type EncodingFunction = ConversionFunctionBase
+type DecodingFunction = ConversionFunctionBase
 
-class AttributeValueTypeConversion(TypedDict):
-    encode: dict[ObjectAttributeType, AttributeEncodingFunctions]
-    decode: dict[ObjectAttributeType, AttributeDecodingFunctions]
+type ConversionFunctions[T] = dict[ObjectAttribute, T]
+type EncodingFunctions = ConversionFunctions[EncodingFunction]
+type DecodingFunctions = ConversionFunctions[DecodingFunction]
 
-
-AttributeValueTypeConversions = dict[ObjectAttributeType,
-                                     AttributeValueTypeConversion]
+EncodingTypeMappings = dict[ObjectAttributeType, ObjectAttributeType]
 
 
-class TypeCache(TypedDict):
-    a: str
-
-
-TypeCaches = dict[ObjectAttributeType, TypeCache]
-
-
-class ClientConfig(TypedDict):
-    cache_types: bool
-    type_conversions_overwrite: AttributeValueTypeConversions
-    type_conversions_additional: AttributeValueTypeConversions
-
-
-class IsValueOfTypeFunctionKwargs(TypedDict):
-    allow_union: bool
-    allow_subclass: bool
-    allow_any: bool
+type AttributeValueTypeConversions = dict[ObjectAttributeType,
+                                          dict[ConversionFunctionType, dict[ObjectAttributeType |
+                                                                            Literal['default'], ConversionFunctionBase]]]

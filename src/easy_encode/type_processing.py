@@ -28,17 +28,10 @@ def find_value_type_matches(value, given_type, allow_any: bool = True, allow_sub
     2. list of all types that the value if of, starting with the most specific, ending with the most generic
     """
 
-    print('------Find value type matches-----')
-    print(value, given_type)
-
     given_type_origin = typing.get_origin(given_type)
     if given_type_origin != None:
 
         nested_types = typing.get_args(given_type)
-
-        print('asdf')
-        print(given_type_origin)
-        print(type(value))
 
         # see if this is a Mapping (dict)
         is_mapping = False
@@ -191,10 +184,10 @@ def find_root_type(given_type):
 def test():
 
     def perform_test(expected_validity, value, type, **kwargs: ee_types.IsValueOfTypeFunctionKwargs):
-        respone = is_value_of_type(value, type, **kwargs)
-        print('value: {} type: {} valid: {} valid_type: {}'.format(
-            value, type, respone[0], respone[1]))
-        if expected_validity != respone[0]:
+        respone = find_value_type_matches(value, type, **kwargs)
+        print('value: {} type: {} valid: {} valid_types: {}'.format(
+            value, type, len(respone) != 0, respone))
+        if expected_validity != (len(respone) != 0):
             print('====================')
             print('WARNING')
             print('====================')
@@ -210,8 +203,8 @@ def test():
     perform_test(True, True, ...)
     perform_test(True, None, typing.Any, allow_any=True)
     perform_test(False, None, typing.Any, allow_any=False)
-    perform_test(True, 1, float | int, top_level_union=True)
-    perform_test(True, 1, float | int, top_level_union=False)
+    perform_test(True, 1, float | int)
+    perform_test(True, 1.0, float | int)
     perform_test(True, 1, typing.NewType('A', typing.NewType('B', int)))
     perform_test(False, 1.0, typing.NewType('A', typing.NewType('B', int)))
     perform_test(True, [1, 2, 3], list[int])
