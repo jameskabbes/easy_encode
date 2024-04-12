@@ -4,12 +4,6 @@ from easy_encode import types as ee_types
 
 TYPE_CONVERSIONS: ee_types.AttributeValueTypeConversions = {
 
-    type(None): {
-        'decode': {
-            'default': lambda x: None
-        }
-    },
-
     datetime.datetime: {
         'encode': {
             'default': lambda x: datetime_conversions.datetime_to_str(x),

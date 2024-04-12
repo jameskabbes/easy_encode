@@ -10,7 +10,6 @@ class DataStore:
     DEFAULT_TYPE_CONVERSIONS: ee_types.AttributeValueTypeConversions = {}
     type_conversions: ee_types.AttributeValueTypeConversions
 
-    def __init__(self, client, type_conversions: ee_types.AttributeValueTypeConversions = {}, encoding_type_mappings: ee_types.EncodingTypeMappings = {}):
-        self.client = client
+    def __init__(self, type_conversions: ee_types.AttributeValueTypeConversions = {}, encoding_type_mappings: ee_types.EncodingTypeMappings = {}):
         self.type_conversions = type_conversions
         self.encoding_type_mappings = encoding_type_mappings

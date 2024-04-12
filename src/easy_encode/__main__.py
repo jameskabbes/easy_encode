@@ -14,13 +14,15 @@ a = typing.NewType('a', set[datetime_module.datetime])
 class Division:
     id: DivisionID
     datetimes: a
-    test: list[list[dict[int, str]]]
 
 
 division = Division(1, set(
-    [datetime_module.datetime.now(), datetime_module.datetime.now()]), [[{1: '1'}]])
+    [datetime_module.datetime.now(), datetime_module.datetime.now()]))
 
 ee_client = client.Client()
+ee_client.init_data_store('json', encoding_type_mappings={
+                          datetime_module.datetime: type(None)})
+
 print(division)
 result = ee_client.encode_dataclass_object('json', division)
 print(result)
