@@ -34,7 +34,9 @@ class Client:
         if data_store not in self.data_stores:
             self.init_data_store(data_store)
 
-        return self._encode_object(data_store, obj, attribute_types, encoding_functions)
+        encoded_values = self._encode_object(
+            data_store, obj, attribute_types, encoding_functions)
+        return self.data_stores[data_store]._post_encode_object(attribute_types, encoded_values)
 
     def _get_encoding_function(self, data_store: ee_data_stores.DATA_STORES, attribute_type: ee_types.ObjectAttributeType, encoded_type: ee_types.ObjectAttributeType) -> ee_types.EncodingFunction | None:
         return self._get_conversion_function(data_store, 'encode', attribute_type, encoded_type)

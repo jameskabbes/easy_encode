@@ -42,10 +42,7 @@ def find_value_type_matches(value, given_type, allow_any: bool = True, allow_sub
             pass
 
         if is_mapping:
-            try:
-                if not issubclass(type(value), collections.abc.MutableMapping):
-                    return []
-            except:
+            if type(value) != given_type_origin:
                 return []
 
             mapping: collections.abc.MutableMapping = value
@@ -82,10 +79,7 @@ def find_value_type_matches(value, given_type, allow_any: bool = True, allow_sub
             pass
 
         if is_iterable:
-            try:
-                if not issubclass(type(value), collections.abc.Iterable):
-                    return []
-            except:
+            if type(value) != given_type_origin:
                 return []
 
             counter = 0

@@ -13,3 +13,7 @@ class DataStore:
     def __init__(self, type_conversions: ee_types.AttributeValueTypeConversions = {}, encoding_type_mappings: ee_types.EncodingTypeMappings = {}):
         self.type_conversions = type_conversions
         self.encoding_type_mappings = encoding_type_mappings
+
+    @classmethod
+    def _post_encode_object(cls, attribute_types: ee_types.AttributeTypes, encoded_values: tuple[ee_types.ObjectAttributeValue]):
+        return encoded_values
