@@ -12,6 +12,6 @@ class DataStore(BaseDataStore):
     }
 
     @classmethod
-    def _post_encode_object(cls, attribute_types: ee_types.AttributeTypes, encoded_values: tuple[ee_types.ObjectAttributeValue]) -> str:
+    def _postprocess_encoded_object(cls, encoded_values: tuple[ee_types.ObjectAttributeValue], attribute_types: ee_types.AttributeTypes) -> str:
         attributes = list(attribute_types.keys())
         return json.dumps({attributes[i]: encoded_values[i] for i in range(len(encoded_values))})

@@ -1,4 +1,5 @@
 from easy_encode.data_stores.base import DataStore as BaseDataStore
+from easy_encode.types import ObjectAttributeValue
 
 
 class DataStore(BaseDataStore):

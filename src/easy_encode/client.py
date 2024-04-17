@@ -19,24 +19,22 @@ class Client:
         self.data_stores[data_store] = ee_data_stores.get_data_store(
             data_store)(type_conversions=type_conversions, encoding_type_mappings=encoding_type_mappings)
 
-    def encode_dataclass_object(self,
-                                data_store: ee_data_stores.DATA_STORES,
-                                obj,
-                                encoding_functions: ee_types.EncodingFunctions = {
-                                }
-                                ):
-
+    def encode_dataclass_object(self, data_store: ee_data_stores.DATA_STORES, obj, encoding_functions: ee_types.EncodingFunctions = {}):
         attribute_types = obj.__annotations__
         return self.encode_object(data_store, obj, attribute_types, encoding_functions)
 
     def encode_object(self, data_store: ee_data_stores.DATA_STORES, obj, attribute_types: ee_types.AttributeTypes, encoding_functions: ee_types.EncodingFunctions = {}):
 
-        if data_store not in self.data_stores:
-            self.init_data_store(data_store)
-
-        encoded_values = self._encode_object(
+        encoded_values = self._encode_values(
             data_store, obj, attribute_types, encoding_functions)
-        return self.data_stores[data_store]._post_encode_object(attribute_types, encoded_values)
+        return self.data_stores[data_store]._postprocess_encoded_object(encoded_values, obj, attribute_types)
+
+    def encode_objects(self, data_store: ee_data_stores.DATA_STORES, objs: collections.abc.Iterable, attribute_types: ee_types.AttributeTypes, encoding_functions: ee_types.EncodingFunctions = {}) -> tuple[tuple]:
+        """include a series of objects"""
+
+        encoded_tuples = [self.encode_object(
+            data_store, obj, attribute_types, encoding_functions) for obj in objs]
+        return tuple(encoded_tuples)
 
     def _get_encoding_function(self, data_store: ee_data_stores.DATA_STORES, attribute_type: ee_types.ObjectAttributeType, encoded_type: ee_types.ObjectAttributeType) -> ee_types.EncodingFunction | None:
         return self._get_conversion_function(data_store, 'encode', attribute_type, encoded_type)
@@ -59,11 +57,11 @@ class Client:
             conversion_function = find(
                 type_conversions, conversion_type, attribute_type, encoded_type)
             if conversion_function != None:
-                print(type_conversions)
                 return conversion_function
         return None
 
     def _get_encoding_type_mapping(self, data_store: ee_data_stores.DATA_STORES, attribute_type: ee_types.ObjectAttributeType) -> ee_types.ObjectAttributeType | None:
+        """find which encoding type mapping is relevant for a given attribute type"""
 
         if attribute_type in self.data_stores[data_store].encoding_type_mappings:
             return self.data_stores[data_store].encoding_type_mappings[attribute_type]
@@ -74,8 +72,10 @@ class Client:
 
         return None
 
-    def _encode_object(self, data_store: ee_data_stores.DATA_STORES, obj, attribute_types: ee_types.AttributeTypes, encoding_functions:  ee_types.EncodingFunctions = {}) -> tuple:
-        """encode an object with a given set of attribute types and encoding functions, returns a tuple of encoded values"""
+    def _encode_values(self, data_store: ee_data_stores.DATA_STORES, obj, attribute_types: ee_types.AttributeTypes, encoding_functions: ee_types.EncodingFunctions = {}) -> tuple[ee_types.ObjectAttributeValue]:
+
+        if data_store not in self.data_stores:
+            self.init_data_store(data_store)
 
         encoded_values = []
         for attribute in attribute_types:
@@ -102,13 +102,11 @@ class Client:
         return tuple(encoded_values)
 
     def _encode_value(self, data_store: ee_data_stores.DATA_STORES, obj, attribute: ee_types.ObjectAttribute, attribute_value: ee_types.ObjectAttributeValue, attribute_type: ee_types.ObjectAttributeType) -> ee_types.ObjectAttributeValue:
+        """encode the attribute value of a certain object and type"""
 
         # 1. find the actual type of value from nested type
         type_matches = type_processing.find_value_type_matches(
             attribute_value, attribute_type)
-
-        print('--------------')
-        print(attribute, attribute_value, attribute_type, type_matches)
 
         if len(type_matches) == 0:
             raise exceptions.AttributeValueTypeNotAsTyped(obj, attribute,
@@ -182,21 +180,13 @@ class Client:
             if mapped_type == None:
                 mapped_type = type_match
 
-            print('mapped type')
-            print(mapped_type)
-
             # see what to convert the item to
             encoding_function = self._get_encoding_function(
                 data_store, type_match, mapped_type)
 
-            print('encoding function')
-            print(encoding_function)
-
             if encoding_function != None:
                 encoded_value = encoding_function(attribute_value)
-                print(encoded_value)
                 return encoded_value
 
         # outside of loop for type_matches
-        print('returning og')
         return attribute_value

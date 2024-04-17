@@ -12,12 +12,6 @@ def find_supertype(given_type):
     return given_type
 
 
-def is_type_of_type(primary_type, secondary_type) -> bool:
-    """list[int] is of type list"""
-
-    return True
-
-
 def find_value_type_matches(value, given_type, allow_any: bool = True, allow_subclass: bool = True) -> list[typing.Any]:
     """recursively check if the type of value is of 'given_type'
     ([1,2,3], list[int]) = [ list[int] ]
