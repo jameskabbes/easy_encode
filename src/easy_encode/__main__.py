@@ -1,4 +1,4 @@
-from easy_encode import client, type_processing, types as ee_types
+from easy_encode import client, type_processing, types as ee_types, data_stores
 from dataclasses import dataclass, field
 import typing
 import datetime as datetime_module
@@ -21,11 +21,12 @@ division = Division(1, set(
     [datetime_module.datetime.now(), datetime_module.datetime.now()]), [{1: 2}, {3: 4}])
 
 ee_client = client.Client()
-ee_client.init_data_store('json', encoding_type_mappings={
-                          datetime_module.datetime: type(None)})
+ee_client.init_data_store('csv')
 
 print(division)
-result = ee_client.encode_dataclass_object('json', division)
+result = ee_client.encode_objects(
+    'csv', [division, division], Division.__annotations__)
 print(result)
+
 
 # type_processing.test()

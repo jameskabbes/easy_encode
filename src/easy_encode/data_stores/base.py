@@ -4,6 +4,7 @@ from easy_encode import types as ee_types
 class DataStore:
 
     DATA_STORE: str
+    DEFAULT_ENCODING_TYPE: ee_types.ObjectAttributeType
     DEFAULT_ENCODING_TYPE_MAPPINGS: ee_types.EncodingTypeMappings = {}
     encoding_type_mappings: ee_types.EncodingTypeMappings
 
@@ -25,3 +26,9 @@ class DataStore:
             encoded_nested_values[i], attribute_types) for i in range(len(encoded_nested_values))]
 
         return tuple(postprocessed)
+
+    @classmethod
+    def get_default_encoding_type(cls) -> ee_types.ObjectAttributeType | None:
+        if hasattr(cls, 'DEFAULT_ENCODING_TYPE'):
+            return getattr(cls, 'DEFAULT_ENCODING_TYPE')
+        return None

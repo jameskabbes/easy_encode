@@ -22,3 +22,6 @@ EncodingTypeMappings = dict[ObjectAttributeType, ObjectAttributeType]
 type AttributeValueTypeConversions = dict[ObjectAttributeType,
                                           dict[ConversionFunctionType, dict[ObjectAttributeType |
                                                                             Literal['default'], ConversionFunctionBase]]]
+
+SupportedMappingTypes = (dict, )
+SupportedIterableTypes = (list, tuple, set)

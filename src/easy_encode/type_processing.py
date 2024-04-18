@@ -27,15 +27,8 @@ def find_value_type_matches(value, given_type, allow_any: bool = True, allow_sub
 
         nested_types = typing.get_args(given_type)
 
-        # see if this is a Mapping (dict)
-        is_mapping = False
-        try:
-            is_mapping = issubclass(
-                given_type_origin, collections.abc.MutableMapping)
-        except:
-            pass
-
-        if is_mapping:
+        # is it a dictionary
+        if given_type_origin in ee_types.SupportedMappingTypes:
             if type(value) != given_type_origin:
                 return []
 
@@ -64,15 +57,7 @@ def find_value_type_matches(value, given_type, allow_any: bool = True, allow_sub
             # if the mapping is empty, return successful
             return [given_type]
 
-        # see if this is an Iterable (dict,list,set,tuple)
-        is_iterable = False
-        try:
-            is_iterable = issubclass(
-                given_type_origin, collections.abc.Iterable)
-        except:
-            pass
-
-        if is_iterable:
+        if given_type_origin in ee_types.SupportedIterableTypes:
             if type(value) != given_type_origin:
                 return []
 
